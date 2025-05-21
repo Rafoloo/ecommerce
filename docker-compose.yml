@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile.nextjs
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .env.local
+    depends_on:
+      - payload
+      - postgres
+      - redis
+
+  payload:
+    build:
+      context: ./payload
+      dockerfile: Dockerfile.payload
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./payload:/app
+      - payload_uploads:/app/uploads
+    env_file:
+      - .env.payload
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: payload
+      POSTGRES_PASSWORD: payload
+      POSTGRES_DB: payload
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+
+volumes:
+  postgres_data:
+  payload_uploads:
